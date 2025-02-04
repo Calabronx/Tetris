@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <assert>
 
 typedef uint8_t u8;
 typedef uint16_t u16;
@@ -112,7 +113,43 @@ tetrino_get(Tetrino* tetrino, s32 row, s32 col, s32 rotation)
 
 bool check_piece_valid(const Piece_State *piece, const u8 *board, s32 width, s32 height)
 {
-	return false;
+	const Tetrino *tetrino = TETRINOS + piece->tetrino_index;
+	assert(tetrino);
+
+	for (s32 row = 0; row < height; ++row)
+	{
+		for (s32 col = 0; col < width; ++col)
+		{
+			u8 value = tetrino_get(tetrino, row, col, piece->rotation);
+			if (value > 0)
+			{
+				s32 board_row = piece->offset_row + row;
+				s32 board_col = piece->offset_col + col;
+				if (board_row < 0)
+				{
+					return false;
+				}
+				if (board_row >= height)
+				{
+					return false;
+				}
+				if (board_col < 0)
+				{
+					return false;
+				}
+				if (board_col >= width)
+				{
+					return false;
+				}
+				if (matrix_get(board, width, board_row, board_col))
+				{
+					return false;
+				}
+			}
+		}
+	}
+
+	return true;
 }
 
 void update_game_play(Game_State *game, const Input_State *input)
